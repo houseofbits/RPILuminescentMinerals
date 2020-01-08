@@ -1,5 +1,5 @@
 ## [The Latvian Museum of Natural History ](https://www.dabasmuzejs.gov.lv/) - Mineralogy
-RaspberryPI C++ executable to control lighting cycles in Luminescentt Minerals exposition.
+RaspberryPI C++ executable to control lighting cycles in Luminescent Minerals exposition.
 
 **Build**
 
@@ -9,7 +9,7 @@ RaspberryPI C++ executable to control lighting cycles in Luminescentt Minerals e
 
 2) Clone ABElectronics repo ``git clone https://github.com/abelectronicsuk/ABElectronics_CPP_Libraries abelibs``
 
-3) MAke & run ``make`` ``./lumim``
+3) Make & run ``make`` ``./lumim``
 
 **Hardware**
 
