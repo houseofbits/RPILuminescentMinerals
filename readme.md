@@ -1,5 +1,5 @@
 ## [The Latvian Museum of Natural History ](https://www.dabasmuzejs.gov.lv/) - Mineralogy
-RaspberryPI C++ executable to control lighting cycles in Luminescentt MInerals exposition.
+RaspberryPI C++ executable to control lighting cycles in Luminescentt Minerals exposition.
 
 For hardware IO https://www.abelectronics.co.uk/ expansion boards are used
 - IO Pi Plus
