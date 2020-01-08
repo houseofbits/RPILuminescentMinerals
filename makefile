@@ -1,2 +1,2 @@
-hellomake: main.c
-     gcc -o lumim main.c -I.
+hellomake: main.cpp
+	 g++ -o lumim main.cpp -I.
