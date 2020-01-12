@@ -3,7 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include <time.h>
-#include "abelibs/ExpanderPi/ABE_ExpanderPi.h"
+#include "abelibs/IOPi/ABE_IOPi.h"
 #include "abelibs/ServoPi/ABE_ServoPi.h"
 
 using namespace std;
@@ -78,8 +78,11 @@ void InitIO()
 {
     try{
 
-		//IoPi bus1(0x20);
-		//IoPi bus2(0x21);
+		IoPi bus1(0x20);
+		
+        //IoPi bus2(0x21);
+
+        return ;
 
         expi = new ExpanderPi();
         pwm = new ServoPi(0x40, 1);
@@ -213,7 +216,9 @@ int main()
     //  cout<<"0.9  "<<exponentialEasing(0.9,a)<<endl;     
     //  return 0;
 
-    //InitIO();
+    InitIO();
+
+    return 0;
 
     // cout << "Placeholder" << endl;
 
