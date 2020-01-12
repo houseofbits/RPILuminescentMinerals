@@ -9,7 +9,7 @@
 using namespace std;
 using namespace ABElectronics_CPP_Libraries;
 
-ExpanderPi* expi = 0;
+//ExpanderPi* expi = 0;
 ServoPi* pwm = 0;
 
 #define PWM_RESOLUTION 4095
@@ -84,22 +84,22 @@ void InitIO()
 
         return ;
 
-        expi = new ExpanderPi();
+        //expi = new ExpanderPi();
         pwm = new ServoPi(0x40, 1);
 
         //Pins 1 to 8 - output
-        expi->io_set_port_direction(0, 0x00);
+       // expi->io_set_port_direction(0, 0x00);
 
         // port - 0 = pins 1 to 8, port 1 = pins 9 to 16
         char port1_io_direction = 0b00000011;
 
         //Pins 9 - 14 - output
         //Pins 15, 16 - input
-        expi->io_set_port_direction(1, 0xFF);
+       // expi->io_set_port_direction(1, 0xFF);
 
-        expi->io_write_port(0, 0x00);
+        //expi->io_write_port(0, 0x00);
 
-        expi->io_set_port_pullups(1, 0xFF);
+        //expi->io_set_port_pullups(1, 0xFF);
 
         //expi->io_read_pin(9);
 
@@ -193,14 +193,14 @@ void Delay(int s)
  * @param output pin number
  * */
 void IOOn(int pin){
-    expi->io_write_pin(pin, 1);
+//    expi->io_write_pin(pin, 1);
 }
 
 /**
  * @param output pin number
  * */
 void IOOff(int pin){
-    expi->io_write_pin(pin, 0);
+//    expi->io_write_pin(pin, 0);
 }
 
 int main() 
@@ -265,7 +265,7 @@ int main()
     }
 
     delete pwm;
-    delete expi; 
+    //delete expi; 
 
     return(0);
 }
