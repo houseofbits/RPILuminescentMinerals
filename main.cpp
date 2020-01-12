@@ -3,7 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include <time.h>
-#include "abelibs/IOPi/ABE_IOPi.h"
+#include "abelibs/IOPi/ABE_IoPi.h"
 #include "abelibs/ServoPi/ABE_ServoPi.h"
 
 using namespace std;
