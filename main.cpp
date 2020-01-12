@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdexcept>
 #include <math.h>
 #include <iostream>
 #include <time.h>
@@ -9,7 +10,8 @@
 using namespace std;
 using namespace ABElectronics_CPP_Libraries;
 
-//ExpanderPi* expi = 0;
+IoPi* bus1 = 0;
+IoPi* bus2 = 0;
 ServoPi* pwm = 0;
 
 #define PWM_RESOLUTION 4095
@@ -37,6 +39,15 @@ ServoPi* pwm = 0;
 #define B_UVB_RIGHT_PIN 2
 
 #define INACTIVITY_RESET_TIMEOUT 5    //Inactivity period (S) after which sequence starts over
+
+/**
+ * @param delay time in seconds
+ * */
+void Delay(int s)
+{   
+    for(int i = 0; i < s; i++)
+        usleep(1000000);
+}
 
 /**
  * Aproximation For LED gamma correction
@@ -67,8 +78,8 @@ float exponentialEasing (float x, float a)
  * */
 void ResetOutputs()
 {
-    expi->io_write_port(0, 0x00);
-    expi->io_write_port(1, 0x00);
+    bus1->write_port(0, 0x00);
+    bus2->write_port(1, 0x00);
 }
 
 /**
@@ -78,36 +89,17 @@ void InitIO()
 {
     try{
 
-		IoPi bus1(0x20);
-		
-        //IoPi bus2(0x21);
+        bus1 = new IoPi(0x20);
+        bus2 = new IoPi(0x21);      
 
-        return ;
+        bus1->set_port_direction(0, 0x00);
+        bus1->set_port_direction(1, 0x00);
+        bus2->set_port_direction(0, 0xFF);
 
-        //expi = new ExpanderPi();
         pwm = new ServoPi(0x40, 1);
-
-        //Pins 1 to 8 - output
-       // expi->io_set_port_direction(0, 0x00);
-
-        // port - 0 = pins 1 to 8, port 1 = pins 9 to 16
-        char port1_io_direction = 0b00000011;
-
-        //Pins 9 - 14 - output
-        //Pins 15, 16 - input
-       // expi->io_set_port_direction(1, 0xFF);
-
-        //expi->io_write_port(0, 0x00);
-
-        //expi->io_set_port_pullups(1, 0xFF);
-
-        //expi->io_read_pin(9);
-
-        //expi->io_write_pin(0, 1);
-
         pwm->set_pwm_freq(300, 0x40);
+        pwm->set_pwm(1, 0, 300, 0x40);
         pwm->output_enable();
-        //pwm->set_pwm(1, 0, 1000, 0x40);
 
         ResetOutputs();
 
@@ -159,7 +151,7 @@ bool WaitForSensorActivation()
 
     while(true){   
         
-        int in = 1; //expi.io_read_pin(SENSOR_INPUT_PIN);
+        int in = 1; //bus1.read_pin(SENSOR_INPUT_PIN);
         
         if (in) {
             
@@ -181,26 +173,17 @@ bool WaitForSensorActivation()
 }
 
 /**
- * @param delay time in seconds
- * */
-void Delay(int s)
-{   
-    for(int i = 0; i < s; i++)
-        usleep(1000000);
-}
-
-/**
  * @param output pin number
  * */
 void IOOn(int pin){
-//    expi->io_write_pin(pin, 1);
+    bus1->write_pin(pin, 1);
 }
 
 /**
  * @param output pin number
  * */
 void IOOff(int pin){
-//    expi->io_write_pin(pin, 0);
+    bus1->write_pin(pin, 0);
 }
 
 int main() 
@@ -219,20 +202,6 @@ int main()
     InitIO();
 
     return 0;
-
-    // cout << "Placeholder" << endl;
-
-    // time_t start,end;
-
-    // time (&start);
-
-    // usleep(2000000);
-
-    // time (&end);
-    
-    // double system_secs = difftime (end,start);
-
-    // cout << " Runtime: " << system_secs << "s" << endl;
 
     while(true){
 
@@ -265,7 +234,8 @@ int main()
     }
 
     delete pwm;
-    //delete expi; 
+    delete bus2;     
+    delete bus1; 
 
     return(0);
 }
