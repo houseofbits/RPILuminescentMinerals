@@ -186,6 +186,18 @@ void IOOff(int pin){
     bus1->write_pin(pin, 0);
 }
 
+
+void devTestOutputs(){
+
+    while(true){
+
+        int pin = 0;
+        cout<<"Set pin: ";
+        
+
+    }
+}
+
 int main() 
 {
 
@@ -222,6 +234,8 @@ int main()
             if(!WaitForSensorActivation()) continue;
 
             //Proceed to switch on UVA lamps
+
+            IOOn(A_UVA_BOTTOM_PIN);
 
             IOOn(A_UVA_TOP_PIN);
 

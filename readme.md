@@ -13,7 +13,7 @@ RaspberryPI C++ executable to control lighting cycles in Luminescent Minerals ex
 
 **Hardware**
 
-As RPI IO https://www.abelectronics.co.uk/ expansion boards are used
+RPI IO https://www.abelectronics.co.uk/ expansion boards are used
 - IO Pi Plus
 - Servo PWM Pi
 
