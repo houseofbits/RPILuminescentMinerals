@@ -26,17 +26,17 @@ ServoPi* pwm = 0;
 //2) Wavelength = UVA|UVB|UVC
 //3) Lamp position = TOP|BOTTOM|LEFT|RIGHT
 #define A_UVA_TOP_PIN 1
-#define A_UVB_TOP_PIN 1
-#define A_UVC_TOP_PIN 1
-#define A_UVA_BOTTOM_PIN 2
-#define A_UVB_LEFT_PIN 2
-#define A_UVB_RIGHT_PIN 2
-#define B_UVA_TOP_PIN 1
-#define B_UVB_TOP_PIN 1
-#define B_UVC_TOP_PIN 1
-#define B_UVA_BOTTOM_PIN 2
-#define B_UVB_LEFT_PIN 2
-#define B_UVB_RIGHT_PIN 2
+#define A_UVB_TOP_PIN 2
+#define A_UVC_TOP_PIN 3
+#define A_UVA_BOTTOM_PIN 4
+#define A_UVB_LEFT_PIN 5
+#define A_UVB_RIGHT_PIN 6
+#define B_UVA_TOP_PIN 7
+#define B_UVB_TOP_PIN 8
+#define B_UVC_TOP_PIN 9
+#define B_UVA_BOTTOM_PIN 10
+#define B_UVB_LEFT_PIN 11
+#define B_UVB_RIGHT_PIN 12
 
 #define INACTIVITY_RESET_TIMEOUT 5    //Inactivity period (S) after which sequence starts over
 
@@ -102,7 +102,7 @@ void InitIO()
         pwm->output_enable();
 
         ResetOutputs();
-
+        
 	}
 	catch (exception &e)
 	{
@@ -120,7 +120,7 @@ void FadeLEDIn(int pinId)
         usleep(LED_FADE_DELAY_US);
         f = exponentialEasing((float)x/(float)PWM_RESOLUTION, LED_GAMMA_EXPONENT);
         f = f * (float)PWM_RESOLUTION;
-        pwm->set_pwm(pinId, 0, (int)f, 0x40);
+        if(pwm)pwm->set_pwm(pinId, 0, (int)f, 0x40);
     }
 }
 
@@ -134,7 +134,7 @@ void FadeLEDOut(int pinId)
         usleep(LED_FADE_DELAY_US);
         f = exponentialEasing((float)x/(float)PWM_RESOLUTION, LED_GAMMA_EXPONENT);
         f = f * (float)PWM_RESOLUTION;        
-        pwm->set_pwm(pinId, 0, (int)f, 0x40);
+        if(pwm)pwm->set_pwm(pinId, 0, (int)f, 0x40);
     }
 }
 
@@ -151,7 +151,9 @@ bool WaitForSensorActivation()
 
     while(true){   
         
-        int in = 1; //bus1.read_pin(SENSOR_INPUT_PIN);
+        int in = 1; 
+        
+        if(bus2)in = bus2->read_pin(SENSOR_INPUT_PIN);
         
         if (in) {
             
@@ -176,25 +178,72 @@ bool WaitForSensorActivation()
  * @param output pin number
  * */
 void IOOn(int pin){
-    bus1->write_pin(pin, 1);
+    if(bus1)bus1->write_pin(pin, 1);
 }
 
 /**
  * @param output pin number
  * */
 void IOOff(int pin){
-    bus1->write_pin(pin, 0);
+    if(bus1)bus1->write_pin(pin, 0);
 }
 
-
+/**
+ * 
+ * */
 void devTestOutputs(){
 
     while(true){
 
-        int pin = 0;
-        cout<<"Set pin: ";
-        
+        try{
+            int option = 0;    
 
+            cout<<"Option"<<endl;
+            cout<<" 0 - Port 0 output"<<endl;
+            cout<<" 1 - Port 1 input"<<endl;
+            cout<<" 2 - PWM output (VALUE 0 - "<<PWM_RESOLUTION<<")"<<endl;                
+            cout<<" 3 - Quit"<<endl;                
+            cin>>option;
+
+            if(option == 3)return;
+
+            if(option == 0){
+                int pin = 0, value = 0;
+                cout<<"Set pin: ";
+                cin>>pin;
+                cout<<"Value: ";
+                cin>>value;
+
+                if(pin > 16 || value > 1)continue;
+
+                if(value > 0)IOOn(pin);
+                if(value == 0)IOOff(pin);
+            }
+            if(option == 1){
+                int pin = 0, value = 0;
+                cout<<"Read pin: ";
+                cin>>pin;
+
+                if(bus2)value = bus2->read_pin(pin);
+                cout<<"Value = "<<value<<endl;
+                cin;
+            }
+            if(option == 2){
+                int pin = 0, value = 0;
+                cout<<"Set pwm pin: ";
+                cin>>pin;
+                cout<<"Value: ";
+                cin>>value;
+
+                if(pin > 16)continue;
+
+                if(pwm)pwm->set_pwm(pin, 0, (int)value, 0x40);
+            }
+        }
+        catch (exception &e) {
+            cout <<"Process error: "<< e.what() << endl;
+            continue;
+        } 
     }
 }
 
@@ -212,6 +261,8 @@ int main()
     //  return 0;
 
     InitIO();
+
+    devTestOutputs();
 
     return 0;
 
@@ -247,9 +298,9 @@ int main()
         }            
     }
 
-    delete pwm;
-    delete bus2;     
-    delete bus1; 
+    if(pwm)delete pwm;
+    if(bus2)delete bus2;     
+    if(bus1)delete bus1; 
 
     return(0);
 }
