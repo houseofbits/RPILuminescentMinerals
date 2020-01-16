@@ -3,9 +3,9 @@ RaspberryPI C++ executable to control lighting cycles in Luminescent Minerals ex
 
 **Build**
 
-1) Clone repo ``git clone https://github.com/houseofbits/RPILuminescentMinerals``
+1) Clone repo ``git clone https://github.com/houseofbits/RPILuminescentMinerals lumim``
 
-``cd RPILuminescentMinerals``
+``cd lumim``
 
 2) Check out ABElectronics c++ libraries
 
