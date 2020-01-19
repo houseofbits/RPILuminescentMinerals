@@ -15,28 +15,36 @@ IoPi* bus2 = 0;
 ServoPi* pwm = 0;
 
 #define PWM_RESOLUTION 4095
-#define LED_GAMMA_EXPONENT 0.7
-#define LED_FADE_DELAY_US 100
+#define LED_GAMMA_EXPONENT 0.8
+#define LED_FADE_DELAY_US 0
+#define LED_FADE_STEP 5
 
 #define A_LEDPWM_PIN 1
-#define B_LEDPWM_PIN 1
+#define B_LEDPWM_PIN 2
 #define SENSOR_INPUT_PIN 2
 
+//Screens - facing from electronic box, A-left, B-right
 //1) Screen side = A|B
 //2) Wavelength = UVA|UVB|UVC
 //3) Lamp position = TOP|BOTTOM|LEFT|RIGHT
-#define A_UVA_TOP_PIN 1
-#define A_UVB_TOP_PIN 2
-#define A_UVC_TOP_PIN 3
-#define A_UVA_BOTTOM_PIN 4
-#define A_UVB_LEFT_PIN 5
-#define A_UVB_RIGHT_PIN 6
-#define B_UVA_TOP_PIN 7
-#define B_UVB_TOP_PIN 8
-#define B_UVC_TOP_PIN 9
-#define B_UVA_BOTTOM_PIN 10
-#define B_UVB_LEFT_PIN 11
-#define B_UVB_RIGHT_PIN 12
+#define A_UVC_TOP_PIN 6
+#define A_UVB_TOP_PIN 4
+#define A_UVA_TOP_PIN 3
+#define B_UVB_TOP_PIN 14
+#define B_UVC_TOP_PIN 15
+#define B_UVA_TOP_PIN 16
+
+
+#define A_UVB_TOPLEFT_PIN 9
+#define A_UVB_BOTTOMLEFT_PIN 10
+#define A_UVA_BOTTOM_PIN 7
+#define A_UVB_BOTTOMRIGHT_PIN 5
+#define A_UVB_TOPRIGHT_PIN 8
+
+#define B_UVB_TOPLEFT_PIN 11
+#define B_UVA_BOTTOM_PIN 12
+#define B_UVB_BOTTOMRIGHT_PIN 2
+#define B_UVB_TOPRIGHT_PIN 1
 
 #define INACTIVITY_RESET_TIMEOUT 5    //Inactivity period (S) after which sequence starts over
 
@@ -78,8 +86,11 @@ float exponentialEasing (float x, float a)
  * */
 void ResetOutputs()
 {
-    bus1->write_port(0, 0x00);
-    bus2->write_port(1, 0x00);
+    bus1->write_port(0, 0xFF);
+    bus1->write_port(1, 0xFF);
+
+    if(pwm)pwm->set_pwm(1, 0, PWM_RESOLUTION, 0x40);
+    if(pwm)pwm->set_pwm(2, 0, PWM_RESOLUTION, 0x40);
 }
 
 /**
@@ -90,11 +101,18 @@ void InitIO()
     try{
 
         bus1 = new IoPi(0x20);
-        bus2 = new IoPi(0x21);      
+        bus1->set_port_direction(0, 0x00);
+        bus1->set_port_direction(1, 0x00);        
+        bus1->write_port(0, 0xFF);
+        bus1->write_port(1, 0xFF);
+
+        bus2 = new IoPi(0x21);
 
         bus1->set_port_direction(0, 0x00);
         bus1->set_port_direction(1, 0x00);
         bus2->set_port_direction(0, 0xFF);
+        bus2->set_pin_pullup(1,1);
+        bus2->set_pin_pullup(2,1);
 
         pwm = new ServoPi(0x40, 1);
         pwm->set_pwm_freq(300, 0x40);
@@ -113,10 +131,10 @@ void InitIO()
 /**
  * @param LED output pin number
  * */
-void FadeLEDIn(int pinId)
+void FadeLEDOff(int pinId)
 {
     float f = 0;
-    for (int x = 1; x <= PWM_RESOLUTION; x = x + 1) {
+    for (int x = 1; x <= PWM_RESOLUTION; x = x + LED_FADE_STEP) {
         usleep(LED_FADE_DELAY_US);
         f = exponentialEasing((float)x/(float)PWM_RESOLUTION, LED_GAMMA_EXPONENT);
         f = f * (float)PWM_RESOLUTION;
@@ -127,15 +145,31 @@ void FadeLEDIn(int pinId)
 /**
  * @param LED output pin number
  * */
-void FadeLEDOut(int pinId)
+void FadeLEDOn(int pinId)
 {
     float f = 0;
-    for (int x = 1; x <= PWM_RESOLUTION; x = x + 1) {
+    for (int x = 1; x <= PWM_RESOLUTION; x = x + LED_FADE_STEP) {
         usleep(LED_FADE_DELAY_US);
         f = exponentialEasing((float)x/(float)PWM_RESOLUTION, LED_GAMMA_EXPONENT);
-        f = f * (float)PWM_RESOLUTION;        
+        f = (1.0 - f) * (float)PWM_RESOLUTION;        
         if(pwm)pwm->set_pwm(pinId, 0, (int)f, 0x40);
     }
+}
+
+/**
+ * @param LED output pin number
+ * */
+void SetLEDOn(int pinId)
+{
+    if(pwm)pwm->set_pwm(pinId, 0, 0, 0x40);
+}
+
+/**
+ * @param LED output pin number
+ * */
+void SetLEDOff(int pinId)
+{
+    if(pwm)pwm->set_pwm(pinId, 0, PWM_RESOLUTION, 0x40);
 }
 
 /**
@@ -178,14 +212,14 @@ bool WaitForSensorActivation()
  * @param output pin number
  * */
 void IOOn(int pin){
-    if(bus1)bus1->write_pin(pin, 1);
+    if(bus1)bus1->write_pin(pin, 0);
 }
 
 /**
  * @param output pin number
  * */
 void IOOff(int pin){
-    if(bus1)bus1->write_pin(pin, 0);
+    if(bus1)bus1->write_pin(pin, 1);
 }
 
 /**
@@ -262,33 +296,35 @@ int main()
 
     InitIO();
 
-    devTestOutputs();
-
-    return 0;
+    //devTestOutputs();
+    //return 0;
 
     while(true){
 
         try{
 
-            if(!WaitForSensorActivation()) continue; //Start over from beginning
+            //if(!WaitForSensorActivation()) continue; //Start over from beginning
 
-            FadeLEDIn(A_LEDPWM_PIN);
-            FadeLEDIn(B_LEDPWM_PIN);
+            SetLEDOff(A_LEDPWM_PIN);
+            SetLEDOff(B_LEDPWM_PIN);
+
+            FadeLEDOn(A_LEDPWM_PIN);
+            FadeLEDOn(B_LEDPWM_PIN);
         
             Delay(5);
 
-            IOOn(A_UVA_BOTTOM_PIN);
+            FadeLEDOff(A_LEDPWM_PIN);
+            FadeLEDOff(B_LEDPWM_PIN);  
 
-            FadeLEDOut(A_LEDPWM_PIN);
-            FadeLEDOut(B_LEDPWM_PIN);  
+            Delay(5);
 
-            if(!WaitForSensorActivation()) continue;
+            //if(!WaitForSensorActivation()) continue;
 
             //Proceed to switch on UVA lamps
 
-            IOOn(A_UVA_BOTTOM_PIN);
+            //IOOn(A_UVA_BOTTOM_PIN);
 
-            IOOn(A_UVA_TOP_PIN);
+            //IOOn(A_UVA_TOP_PIN);
 
             //...
         }
